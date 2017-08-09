@@ -110,7 +110,6 @@ plot([1 length(abschange)], [1.5 1.5], 'k');
 xlim([0 Inf])
 title('Changes in network expression');
 
-%%
 pi = [2 7 8];
 subplot(3,1,2)
 hold on

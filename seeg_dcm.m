@@ -14,7 +14,7 @@ spm('defaults', 'EEG');
 
 % Specify analysis segment
 %==========================================================================
-win_no = [81 1100 640 700 260 275 410 440];
+win_no = [150 1105 323 343 710 730 865 885];
 
 % Setup DCM Structure
 %==========================================================================
@@ -32,17 +32,9 @@ smpls               = size(SEEG,2);
 timax               = linspace(0, smpls/Fs, smpls);
 conds               = condlist(SEEG);
 
-%%
-for w = 1:length(win_no);
-    thiscond            = [record{w} '_' num2str(win_no(w))];
+for w = 1:length(win_no)
+    thiscond            = conds{win_no(w)};
     display(thiscond)
-
-    clear c
-    for c = 1:length(conds)
-        cs(c) = ~isempty(regexp(conds{c}, [record '_\d']));
-    end
-    cind                = find(cs);
-    cwin                = cind(win_no(w));
 
     % Set up DCM details
     %--------------------------------------------------------------------------
@@ -55,7 +47,7 @@ for w = 1:length(win_no);
     DCM.options.D       = 1;         	% frequency bin, 1 = no downsampling
     DCM.options.Nmodes  = 8;          	% cosine reduction components used 
     DCM.options.han     = 0;         	% no hanning 
-    DCM.options.trials  = 2;            % index of ERPs within file
+    DCM.options.trials  = w;            % index of ERPs within file
 
     DCM.Sname           = chanlabels(SEEG);
     DCM.M.Hz            = DCM.options.Fdcm(1):DCM.options.D:DCM.options.Fdcm(2);
@@ -92,9 +84,8 @@ for w = 1:length(win_no);
     [pE,pC]  = spm_dcm_neural_priors(DCM.A,DCM.B,DCM.C,DCM.options.model);  
     [pE,pC]  = spm_L_priors(DCM.M.dipfit,pE,pC);
     [pE,pC]  = spm_ssr_priors(pE,pC);
-    %
+    
     load([Fdcm fs 'emp_priors.mat']);
-
     pE.T        = P.T;
     pE.L        = ones(length(pE.L),1) .* P.L;
     pE.J        = P.J;
@@ -117,10 +108,12 @@ for w = 1:length(win_no);
     % Invert DCM and log inversion output
     %==========================================================================
     diary([Fdcm fs 'log']);
-    DCM.name    = [Fdcm fs record{w} '_DCM'];
+    DCM.name    = [Fdcm fs 'DCM_' conds{win_no(w)}];
     TMP         = seeg_spm_dcm_csd(DCM);
     TMP.xY.R    = diag(TMP.xY.R);
     INV{w}      = TMP;
+    
+	delete(DCM.name);
     save([Fdcm fs 'DCM_Selection'], 'INV');
     diary off
 end
