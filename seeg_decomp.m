@@ -5,14 +5,20 @@ Fscripts  = D.Fscripts;
 Fdata     = D.Fdata;
 Fanalysis = D.Fanalysis;
 fs        = filesep;
-addpath([Fscripts fs 'nmfv1_4']);
+
+files       = cellstr(spm_select('FPList', [Fanalysis fs 'Win_Coh'], '.mat$'));
+
+% Load data file to extract header labels
+%--------------------------------------------------------------------------
+hdr     = ft_read_header([Fdata fs 'Awake.edf']);
+chanlab = hdr.label(2:39);
 
 % Load individual files into concatenated matrix
 %==========================================================================
 allcoh = [];
 for f = 1:length(files)
     
-load([Fanalysis fs files{f}]);
+load(files{f});
 wcoh    = B.wcoh;   clear B;
 wl(f)   = size(wcoh,1);
 dyncoh  = [];
@@ -47,23 +53,43 @@ figure(1)
     % Settings
     ylim([0 Inf]);
 
-%%
-sum(sum(sqrt((allcoh - W*H).^2))) / sum(sum(allcoh))
-%%
+    min_k = find(Err < 0.1);    min_k = min_k(1);
 
+%% Matrix decomposition with optimal number of subnetworks
+%==========================================================================
+if isempty(min_k), min_k = 3; end
+[W H]   = nmfnnls(allcoh, min_k);
 
-figure 
-lbl = {'1', '2', '3', '4'};
-subplot(3,4,[1:4])
+figure(2)
+clear A G B
+for w = 1:size(W,2)
+    A{w}    = seeg_untril(W(:,w));
+    B{w}    = A{w} > mean(A{w}(:));
+    G{w}    = graph(B{w}, chanlab);
+    
+    subplot(2,min_k,w)
+    plot(G{w}, 'Layout', 'circle')
+    axis square
+    subplot(2,min_k,w+min_k)
+    imagesc(A{w});
+    axis square
+end
+
+%% Plot coherence dynamics and subgraph expression plots
+%--------------------------------------------------------------------------
+figure(3)
+for i = 1:min_k
+    lbl{i} = num2str(i);
+end
+
+subplot(3,1,1)
 imagesc(allcoh), hold on
 for w = 1:length(wl)
     x = sum(wl(1:w));
     plot([x x], [0 1000], 'color', 'w', 'linewidth', 3);
 end
 
-[W H] = nmfnnls(allcoh, 4);
-
-subplot(3,4,9:12)
+subplot(3,1,2)
 plot(H'); hold on
 legend(lbl);
 for w = 1:length(wl)
@@ -73,85 +99,23 @@ end
 ylim([0 max(max(H))]);
 xlim([1 size(H,2)]);
 
-for p = 1:4
-    subplot(3,4,4+p)
-    imagesc(seeg_untril(W(:,p)));
-    title(lbl{p});
-    colorbar
-    axis square
+subplot(3,1,3)
+change      = abs(diff(H'));
+abschange   = smooth(sum(change,2));
+[val loc]   = findpeaks(abschange);
+peakchg     = loc(val > 1.5);
+
+plot(abschange); hold on
+plot([1 length(abschange)], [1.5 1.5], 'k');
+xlim([0 Inf])
+title('Changes in network expression');
+
+%%
+pi = [2 7 8];
+subplot(3,1,2)
+hold on
+for p = pi
+    plot([peakchg(p)+10 peakchg(p)+10],[0 max(H(:))],'color', [.5 .5 .5]);
+    plot([peakchg(p)-10 peakchg(p)-10],[0 max(H(:))],'color', [.5 .5 .5]);
 end
-
-%% Identify optimal size of subgraphs into which to divide
-%==========================================================================
-
-[W H] = nnmf(dyncoh, 10);
-subplot(3,1,1), imagesc(dyncoh);
-subplot(3,1,2), imagesc(W*H);
-subplot(3,1,3), imagesc(dyncoh - W*H);
-
-textprogressbar('Simulating ');
-count = 0;
-for r = 1:10
-for i = 1:50
-    count = count + 1;
-    textprogressbar(100*count/500);
-    [W H]   = nnmf(dyncoh, i);
-    err     = (dyncoh - W*H).^2;
-    merr(r,i) = mean(mean(err));
-end
-end
-textprogressbar(' Done');
-
-figure
-plot(mean(merr))
-[val loc] = min(mean(merr));
-
-%% 
-
-opt = statset('maxiter', 100);
-[W H] = nnmf(dyncoh, 6, 'algorithm', 'mult', 'replicates', 10, 'opt', opt);
-opt = statset('maxiter', 1000, 'display', 'final');
-[W H] = nnmf(dyncoh, 6, 'algorithm', 'als', 'w0', W, 'h0', H, 'opt', opt);
-for i = 1:6
-    wfac = max(W(:,i));
-    W(:,i) = W(:,i) / wfac;
-    H(i,:) = H(i,:) * wfac;
-end
-
-
-figure(1)
-subplot(3,3,1:6)
-    plot(H(1:3,:)');
-    legend({'First', 'Second', 'Third'});
-
-for p = 1:3
-    subplot(3,3,6+p)
-    imagesc(seeg_untril(W(:,p)));
-    colorbar
-    axis square
-end
-
-set(gcf, 'color', 'w')
-
-figure(2)
-subplot(3,3,1:6)
-    plot(H(4:6,:)');
-    legend({'First', 'Second', 'Third'});
-
-for p = 1:3
-    subplot(3,3,6+p)
-    imagesc(seeg_untril(W(:,p+3)));
-    colorbar
-    axis square
-end
-
-set(gcf, 'color', 'w')
-
-
-%% 
-for i = 1:20
-[W H it t r] = nmfnnls(dyncoh, i);
-res(i)      = r;
-end
-
 
