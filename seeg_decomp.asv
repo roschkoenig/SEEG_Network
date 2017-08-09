@@ -26,27 +26,15 @@ end
 allcoh = [allcoh, dyncoh];
 end
 
-%% Calculate errors for increasing numbers of subnetworks
+%% Plot residuals for increasing numbers of subnetworks
 %--------------------------------------------------------------------------
 for k = 1:10
     [W H i t r] = nmfnnls(allcoh, k);
     Err(k)      = sum(sum(sqrt((allcoh - W*H).^2))) / sum(sum(allcoh));
     R(k)        = r;
 end
-
-% Plot results
-%--------------------------------------------------------------------------
-figure(1)
-    plot(Err), hold on
-    plot([0 length(Err)], [0.1 0.1]);
-    scatter(1:length(Err), Err, 'k.');
-    % Labels
-    title('Residual error');
-    ylabel('Error');
-    xlabel('Number of Networks');    
-    % Settings
-    ylim([0 Inf]);
-
+plot(Err), hold on
+plot([0 Inf], [0.1 0.1]);
 %%
 sum(sum(sqrt((allcoh - W*H).^2))) / sum(sum(allcoh))
 %%
