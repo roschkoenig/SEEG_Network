@@ -83,7 +83,11 @@ for i = 1:min_k
 end
 
 subplot(3,1,1)
-imagesc(allcoh), hold on
+cols = flip(cbrewer('div', 'RdGy', 256));
+colormap(cols)
+
+[srtd, allsort] = sort(mean(allcoh,2));
+imagesc(allcoh(allsort,:), [0 1]), hold on
 for w = 1:length(wl)
     x = sum(wl(1:w));
     plot([x x], [0 1000], 'color', 'w', 'linewidth', 3);

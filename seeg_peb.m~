@@ -1,0 +1,59 @@
+% Housekeeping
+%==========================================================================
+clear all
+D           = seeg_housekeeping;
+Fanalysis   = D.Fanalysis;
+chanlab     = D.chanlab;
+fs          = filesep;
+Fdcm        = [Fanalysis fs 'DCM'];
+try mkdir(Fdcm); end
+
+spm('defaults', 'EEG');
+
+%% Pre and post seizure PEB
+%--------------------------------------------------------------------------
+load([Fdcm fs 'DCM_Selection']);
+
+si     = [3 4 5 6 7 8];
+for s = 1:length(si)
+    P{s} = INV{si(s)};
+end
+P = P';
+
+%% 
+Xnames  = {'Seizure', 'S1', 'S2', 'S3', 'GM'};
+X       = [0 1 0 1 0 1;
+           1 1 0 0 0 0; 
+           0 0 1 1 0 0; 
+           0 0 0 0 1 1;
+           1 1 1 1 1 1]';
+
+M.X         = X;
+M.Xnames    = Xnames;
+
+clear PEB
+fields = {{'A'}, {'A', 'N'}, {'G'}, {'A','G'}};
+for f = 1:length(fields)
+    thisfield   = fields{f};
+    PEB(f)      = spm_dcm_peb(P,M,thisfield);
+end
+[val loc]   = max([PEB.F]);
+
+[PEB RCM]   = spm_dcm_peb(P,M,fields{loc});
+
+%%
+Gi      = strfind(PEB.Pnames, 'G(');
+for g   = 1:length(Gi), if Gi{g}, gi(g) = 1; else, gi(g) = 0; end; end
+gi      = find(gi);
+
+Ge      = PEB.Ep(gi);
+Gc      = PEB.Cp(gi);
+
+
+
+
+
+
+
+
+
