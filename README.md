@@ -1,4 +1,5 @@
 # Network modelling of stereotactic EEG data
+[About this research stream](http://www.dynamic-brains.com/networks-in-epilepsy-surgery/)
 
 This repository contains the code required to reproduce a network based approach to SEEG data analysis that aims to simulate epilepsy surgery *in silico* to help improve surgical planning in the future. This project is **work in progress** and has not yet been validated for prospective clinical use.
 The strategy demonstrated here rests on three broad approahces
@@ -40,17 +41,31 @@ We can plot these components on top of each other and identify regional maxima i
 seeg_filemaker
 ```
 SPM-based analyses use electrophysiological data in a specific matlab object category called the MEEG object. This routine creates two MEEG objects for use in the subsequent DCM analysis, which contains the data in two different ways
-1. Multichannel segmented into sliding window, so that each 'trial' in the MEEG-object corresponds to a separate *30s* window in the original, concatenated data
-2. Single channel concatenated data, so that each 'trial' in the MEEG-object corresponds to a separate channel from the 7-channel selection chosen for DCM analysis. This will be used in the [Grand Mean DCM](#Run-grand-mean-DCM-to-specify-prior-parameter-estimates) analysis. 
+1. Multichannel segmented into sliding window, so that each 'trial' in the MEEG-object corresponds to a separate *30s* window in the original, concatenated data. This will be used to perform [window-of-interest DCM analysis](#run-dcm-on-regions-of-interest-identified-from-nonnegative-matrix-decomposition). 
+2. Single channel concatenated data, so that each 'trial' in the MEEG-object corresponds to a separate channel from the 7-channel selection chosen for DCM analysis. This will be used in the [Grand Mean DCM](#run-grand-mean-dcm-to-specify-prior-parameter-estimates) analysis. 
+
+The screenshot below shows the first (multichannel, windowed) MEEG object when seen in SPM (open in matlab by calling `spm eeg`, then select M/EEG from the 'Display' drop down menu. 
+
+<img src="https://user-images.githubusercontent.com/12950773/29273228-6c3ab7b4-80fb-11e7-9050-5de90f9daed8.PNG" alt="Expression Peaks" width="400">
 
 ### Run grand mean DCM to specify prior parameter estimates
 ```
 seeg_gmdcm
 ```
-### Run DCM on regions of interest identified from [Nonnegative Matrix Decomposition](#Identifying-a-subnetwork-of-representative-channels)
+Prior parameters for the biophysical models used in SPM are based on cortical columns in healthy human cortex, and are specifically designed to cope well with ERP experiments and particular steady state applications. Here we need to adapt the priors to allow the inversion of abnormal dynamics as seen in epilepsy. 
+
+In order to find suitable sections of parameter space, we therefore employ a staged approach to the model inversion
+1. Manually set a small selection of parameters to values that are compatible with the spectral output seen in the data 
+2. Use this parametersiation to invert continuous data from individual channels, yielding a single, 'steady-state' neural mass model parameterisation that reproduces the type of spectral output seen in this particular channel
+3. Use the channel-specific parameterisations as priors for further DCM analysis of multichannel networks identifying changes 
+
+The first two points are addressed in this routine. Running`spm_induced_optimise` allows visualisation of individual parameters' effects on te spectral output of individual model nodes. Based on this, a single parameter (the time constant *T(2)*) was altered. With the thus adapted priors, this routine runs an inversion for each channel individually. The empirical estimates for the individual channels is then saved for use as priors in the next steps of the analysis. 
+
+### Run DCM on regions of interest identified from [Nonnegative Matrix Decomposition](#identifying-a-subnetwork-of-representative-channels)
 ```
 seeg_dcm
 ```
+
 ### Run hierarchical parametric empirical model to identify seizure-related model changes
 ```
 seeg_peb
