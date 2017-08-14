@@ -1,4 +1,4 @@
-# Network modelling of stereotactic EEG data
+# Network modelling of stereotactic EEG data (work in progress)
 [About this research stream](http://www.dynamic-brains.com/networks-in-epilepsy-surgery/)
 
 This repository contains the code required to reproduce a network based approach to SEEG data analysis that aims to simulate epilepsy surgery *in silico* to help improve surgical planning in the future. This project is **work in progress** and has not yet been validated for prospective clinical use.
