@@ -1,3 +1,9 @@
+% Grand Mean DCM
+%==========================================================================
+% This routine will invert a single DCM for each channel from the
+% recording, so that the inverted individual channel models can be used as
+% priors for the inversions of shorter time windows in subsequent analyses
+
 % Housekeeping
 %==========================================================================
 clear DCM
