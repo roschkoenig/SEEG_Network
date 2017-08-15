@@ -1,5 +1,5 @@
-# Network modelling of stereotactic EEG data (work in progress)
-[About this research stream](http://www.dynamic-brains.com/networks-in-epilepsy-surgery/)
+# Network modelling of stereotactic EEG data 
+*work in progress* | [About this research stream](http://www.dynamic-brains.com/networks-in-epilepsy-surgery/) | [ICTALS2017 Poster](https://doi.org/10.6084/m9.figshare.5311198.v1)
 
 This repository contains the code required to reproduce a network based approach to SEEG data analysis that aims to simulate epilepsy surgery *in silico* to help improve surgical planning in the future. This project is **work in progress** and has not yet been validated for prospective clinical use.
 The strategy demonstrated here rests on three broad approahces
@@ -9,6 +9,20 @@ The strategy demonstrated here rests on three broad approahces
 
 The code runs on [Matlab](https://uk.mathworks.com/) (tested with 2016b) and requires the following freely available packages to run
 * [Statistical Parametric Mapping, SPM12](http://www.fil.ion.ucl.ac.uk/spm/) - The neuroimaging analysis suite that contains the DCM tools
+
+## Table of Contents
+1. [Custom routines](#custom-routines-included-in-this-repository)
+    1. [Visualise Network](#visualise-dynamic-network-patterns)
+    1. [Nonnegative Matrix Decomposition](#run-nonnegative-matrix-decomposition-to-identify-subgraphs)
+    1. [Subnetwork Channels](#identifying-a-subnetwork-of-representative-channels)
+    1. [MEEG Object Filemaker](#prepare-files-for-dcm-analysis-spm-meeg-object)
+    1. [Grand Mean DCM](#run-grand-mean-dcm-to-specify-prior-parameter-estimates)
+    1. [DCMs of seizures](#run-dcm-on-regions-of-interest-identified-from-nonnegative-matrix-decomposition)
+    1. [Parametric Empirical Bayes](#run-hierarchical-parametric-empirical-model-to-identify-seizure-related-model-changes)
+    1. [Simulated Surgery](#simulate-surgical-interventions-and-quantify-network-effects)
+2. [SPM Modifications]
+3. [Other Helper Functions]
+
 
 ## Custom routines included in this repository
 
