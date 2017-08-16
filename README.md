@@ -35,6 +35,9 @@ seeg_networkvis
 In order to first visualise the network dynamics during seizures in this dataset, this routine plots some of the activity. The first section plots individual channels for the duraction of the seizure activity. 
 <img src="https://user-images.githubusercontent.com/12950773/29360266-15c9d3f8-827a-11e7-9823-7fdb68354fe8.png">
 
+The routine then employs a sliding window approach to estimate the changing output spectral distribution at each channel over time (note that the sliding window in its current implementation will take a **long** time). 
+
+<img src="https://user-images.githubusercontent.com/12950773/29378229-32a5129e-82b6-11e7-90e9-3d9b14250b56.png">
 
 
 ### Run nonnegative matrix decomposition to identify subgraphs
