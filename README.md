@@ -32,6 +32,11 @@ The repository includes a number of custom routines that when run sequentially s
 ```
 seeg_networkvis
 ```
+In order to first visualise the network dynamics during seizures in this dataset, this routine plots some of the activity. The first section plots individual channels for the duraction of the seizure activity. 
+<img src="https://user-images.githubusercontent.com/12950773/29360266-15c9d3f8-827a-11e7-9823-7fdb68354fe8.png">
+
+
+
 ### Run nonnegative matrix decomposition to identify subgraphs
 ```
 seeg_decomp
