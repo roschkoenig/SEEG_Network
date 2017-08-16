@@ -35,9 +35,20 @@ seeg_networkvis
 In order to first visualise the network dynamics during seizures in this dataset, this routine plots some of the activity. The first section plots individual channels for the duraction of the seizure activity. 
 <img src="https://user-images.githubusercontent.com/12950773/29360266-15c9d3f8-827a-11e7-9823-7fdb68354fe8.png">
 
-The routine then employs a sliding window approach to estimate the changing output spectral distribution at each channel over time (note that the sliding window in its current implementation will take a **long** time). 
+The routine then employs a sliding window approach to estimate the changing output spectral distribution at each channel over time (note that the sliding window in its current implementation will take a [**long** time](https://github.com/roschkoenig/SEEG_Network/issues/2)). 
 
 <img src="https://user-images.githubusercontent.com/12950773/29378229-32a5129e-82b6-11e7-90e9-3d9b14250b56.png">
+
+The routine also plots example adjacency matrices derived from windowed coherence and correlation estimates for a pre-seizure and seizure segment in the data. 
+
+<img src="https://user-images.githubusercontent.com/12950773/29378230-32b40b3c-82b6-11e7-8ebf-86a20fa79741.png" width="500">
+
+To track the full temporal resolution of these changes, we can vectorise the adjacency matrix (using the matlab inbuilt function `tril` to preserve just the unique edges) and plot the resultant vectors for each time window. Note that for better visibility, this routine orders the edges according to their overall mean correlation/coherence. 
+
+<img src="https://user-images.githubusercontent.com/12950773/29378595-994477f0-82b7-11e7-9590-08b5b5abcb08.png">
+
+
+
 
 
 ### Run nonnegative matrix decomposition to identify subgraphs
