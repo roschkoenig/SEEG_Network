@@ -1,3 +1,14 @@
+% Network Visualisation
+%==========================================================================
+% This routine loads some of the EEG data and plots a few dynamic network
+% visualisation graphics - including (1) raw data traces, (2) windowed
+% power changes over time, (3) Coherence and correlation based adjacency
+% matrices, and (4) Dynamics Matrices to visualise periods of similar
+% network organisation over time
+
+% Housekeeping
+%==========================================================================
+clear all
 D         = seeg_housekeeping;
 Fbase     = D.Fbase;
 Fscripts  = D.Fscripts;
@@ -5,22 +16,44 @@ Fdata     = D.Fdata;
 Fanalysis = D.Fanalysis;
 fs = filesep;
 
+% Load all available data into single structure
+%==========================================================================
+files = cellstr(spm_select('FPList', Fdata, '^*.edf'));
+for f = 1:length(files)
+    file = files{f};
+    seppos      = find(file == fs);
+    dotpos      = find(file == '.');
+    S(f).name   = file(seppos(end)+1:dotpos(end)-1);
+    underscores = find(S(f).name == '_');
+    for u = 1:length(underscores); S(f).name(underscores(u)) = ' '; end
+    S(f).hdr    = ft_read_header(file);
+    S(f).dat    = ft_read_data(file);
+    chid        = find(strcmp('PAR08', S(f).hdr.label));
+    S(f).dat    = S(f).dat(2:chid,:);
+end
+
+% Plot example traces from single channel
+%--------------------------------------------------------------------------
 for s = 1:length(S)
     subplot(5,1,s)
     plot(S(s).dat(10,:));
     title(S(s).name);
     set(gcf, 'Color', 'w');
+    xlim([1 Inf]);
 end
-%%
-C = S(2);
+
+% Calculate sliding window correlation and bandpower distribution
+%==========================================================================
+C       = S(2);
 win     = 30 * C.hdr.Fs;
 step    = fix(0.1 * win);
 
-%% Calculate sliding window correlation and bandpower distribution
-%--------------------------------------------------------------------------
 clear count thiswin wdat wcor wpow wcoh
 count   = 0;
 textprogressbar('Sliding Window: ');
+
+% Sliding window coherence estimator - takes a long time to complete 
+%--------------------------------------------------------------------------
 for w = 1 : step : C.hdr.nSamples - win
     count    = count + 1;
     thiswin  = [0 : win - 1] + w;
@@ -35,14 +68,12 @@ end
 textprogressbar(' Done');
 
 % Save estimates in a structure
-%==========================================================================
+%--------------------------------------------------------------------------
 B.wpow = wpow;
 B.wcor = wcor;
 B.wcoh = wcoh;
 
-save([Fanalysis fs C.name '_win'], 'B');
-
-%% Plot bandpower distribution over time, and network correlation 
+% Plot bandpower distribution over time, and network correlation 
 %==========================================================================
 figure(1)
 subplot(5,1,[1:4]);
@@ -78,8 +109,9 @@ subplot(2,2,4)
     set(gca, 'YTickLabel', C.hdr.label(2:size(C.dat,1)+1));
 set(gcf, 'Color', 'w');
 
-%% Plot corrrelation and coherence changes over time
+% Plot corrrelation and coherence changes over time
 %==========================================================================
+figure
 for c = 1:size(wcor,1)
     thiscor      = squeeze(wcor(c,:,:));
     triid        = find(tril(ones(size(wcor,2)),-1));     % lower triangle indices
@@ -89,6 +121,9 @@ mcor    = mean(dyncor,2);
 [sd si] = sort(mcor);
 subplot(2,1,1)
 imagesc(dyncor(si,:));
+colorbar;
+ylabel('Channels');
+title('Dynamic correlation over time')
 set(gcf, 'color', 'w');
 
 for c = 1:size(wcoh,1)
@@ -100,10 +135,15 @@ mcoh    = mean(dyncoh,2);
 [sd si] = sort(mcoh);
 subplot(2,1,2)
 imagesc(log(dyncoh(si,:)));
+colorbar
 set(gcf, 'color', 'w');
+title('Dynamic coherence over time')
+ylabel('Channels');
+xlabel('Time');
 
 % Plot dynamics matrices
 %==========================================================================
+figure
 cpow = corr(wpow'); subplot(1,3,1), imagesc(cpow); axis square; title('Power')
 ccor = corr(dyncor); subplot(1,3,2), imagesc(ccor); axis square; title('Correlation');
 ccoh = corr(dyncoh); subplot(1,3,3), imagesc(ccoh); axis square; title('Coherence');

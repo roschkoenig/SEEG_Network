@@ -1,3 +1,11 @@
+% Nonnegative matrix decomposition
+%==========================================================================
+% This routine takes the full dataset of windowed coherence over time
+% (concatenated across all available recordings) and performs nonnegative
+% matrix decomposition to identify subnetworks. 
+
+% Housekeeping
+%==========================================================================
 clear all
 D         = seeg_housekeeping;
 Fbase     = D.Fbase;
@@ -32,7 +40,7 @@ end
 allcoh = [allcoh, dyncoh];
 end
 
-%% Calculate errors for increasing numbers of subnetworks
+% Calculate errors for increasing numbers of subnetworks
 %--------------------------------------------------------------------------
 for k = 1:10
     [W H i t r] = nmfnnls(allcoh, k);
@@ -43,17 +51,19 @@ end
 % Plot results
 %--------------------------------------------------------------------------
 figure(1)
-    plot(Err), hold on
+    plot(Err, 'linewidth', 2), hold on
     plot([0 length(Err)], [0.1 0.1]);
-    scatter(1:length(Err), Err, 'k.');
+    scatter(1:length(Err), Err, 200, 'k.');
     % Labels
     title('Residual error');
     ylabel('Error');
     xlabel('Number of Networks');    
     % Settings
     ylim([0 Inf]);
-
-    min_k = find(Err < 0.1);    min_k = min_k(1);
+    set(gcf, 'color', 'w')
+    
+min_k = find(Err < 0.1);    min_k = min_k(1);
+   
 
 %% Matrix decomposition with optimal number of subnetworks
 %==========================================================================
@@ -83,8 +93,8 @@ for i = 1:min_k
 end
 
 subplot(3,1,1)
-cols = flip(cbrewer('div', 'RdGy', 256));
-colormap(cols)
+try cols = flip(cbrewer('div', 'RdGy', 256)); colormap(cols)
+catch colormap(jet); end
 
 [srtd, allsort] = sort(mean(allcoh,2));
 imagesc(allcoh(allsort,:), [0 1]), hold on
@@ -105,7 +115,9 @@ xlim([1 size(H,2)]);
 
 subplot(3,1,3)
 change      = abs(diff(H'));
-abschange   = smooth(sum(change,2));
+rmpath('/Users/roschkoenig/Dropbox/Research/tools/Tools/k-Wave/');
+try  abschange   = smooth(sum(change,2));
+catch abschange  = sum(change,2); end
 [val loc]   = findpeaks(abschange);
 peakchg     = loc(val > 1.5);
 
@@ -121,4 +133,5 @@ for p = pi
     plot([peakchg(p)+10 peakchg(p)+10],[0 max(H(:))],'color', [.5 .5 .5]);
     plot([peakchg(p)-10 peakchg(p)-10],[0 max(H(:))],'color', [.5 .5 .5]);
 end
+set(gcf, 'color', 'w')
 
