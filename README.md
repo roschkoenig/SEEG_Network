@@ -47,10 +47,6 @@ To track the full temporal resolution of these changes, we can vectorise the adj
 
 <img src="https://user-images.githubusercontent.com/12950773/29378595-994477f0-82b7-11e7-9590-08b5b5abcb08.png">
 
-
-
-
-
 ### Run nonnegative matrix decomposition to identify subgraphs
 ```
 seeg_decomp
@@ -98,6 +94,15 @@ The first two points are addressed in this routine. Running`spm_induced_optimise
 ```
 seeg_dcm
 ```
+This routine will load all available data, concatenate their windowes coherence estimates into a single *edge* by *time* matrix, and then decompose that matrix into subgraphs using nonnegative matrix decomposition. This decomposition requires a few different parameters - most importantly the number of subnetworks component into which the data is meant to be decomposed. 
+
+This can be chosen to achieve an arbitrary accuracy threshold, and the code will identify the minimum number of subnetworks required to reproduce the data with a +90% accuracy, providing the following visual output. 
+
+<img src="https://user-images.githubusercontent.com/12950773/29379867-b42ea096-82bb-11e7-8894-461ff11ae127.png" width="300">
+
+For this particular use case the minimum number of subnetworks is *k=3* and the subsequent analysis will be performed using three subnetworks. These are visualised in the next step - both as adjacency matrices (as they are fully weighted), and as a medium-connection-strength thresholded graph representation for visualisation purposes. 
+
+<img src="https://user-images.githubusercontent.com/12950773/29379866-b425d1be-82bb-11e7-9ff3-b3d447aa8ca4.png">
 
 ### Run hierarchical parametric empirical model to identify seizure-related model changes
 ```
