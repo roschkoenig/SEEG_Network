@@ -112,3 +112,6 @@ seeg_peb
 ```
 seeg_surgery
 ```
+In order to simulate the effects of surgical removal of individual areas, we simulated surgery based on the models that were parameterised using the DCM approach. To simulate resection of individual areas, we removed all connection from this area and then simulated the steady state model output, leaving all other parameters unchanged. 
+
+The output of this function is a (maximum-normalised) plot of the difference induced by the *in silico* surgical intervention on the first principal eigenmode power spectrum and coherence to capture both amplitude and phase effects. 
