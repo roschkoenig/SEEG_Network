@@ -1,3 +1,9 @@
+% Parametric Empirical Bayes of seizure onset
+%==========================================================================
+% This routine takes the individual time window DCMs inverted for subjects'
+% seizure onset time windows of interest in order to identify consistent
+% changes that occur at the seizure onset
+
 % Housekeeping
 %==========================================================================
 clear all
@@ -10,7 +16,7 @@ try mkdir(Fdcm); end
 
 spm('defaults', 'EEG');
 
-%% Pre and post seizure PEB
+% Pre and post seizure PEB
 %--------------------------------------------------------------------------
 load([Fdcm fs 'DCM_Selection']);
 
@@ -30,6 +36,12 @@ X       = [0 1 0 1 0 1;
 M.X         = X;
 M.Xnames    = Xnames;
 
+% Loop through a number of candidate PEBs
+%--------------------------------------------------------------------------
+%   A = Extrinsic connections
+%   N = Gain modulation
+%   G = intrinsic connections (including gain modulation)
+
 clear PEB
 fields = {{'A'}, {'A', 'N'}, {'G'}, {'A','G'}};
 for f = 1:length(fields)
@@ -38,35 +50,40 @@ for f = 1:length(fields)
 end
 [val loc]   = max([PEB.F]);
 
-%% Run winning PEB and Bayesian Model Reduction
+% Run winning PEB and Bayesian Model Reduction
 %==========================================================================
 [PEB RCM]   = spm_dcm_peb(P,M,fields{loc});
 BMA         = spm_dcm_peb_bmc(PEB);
 save([Fdcm fs 'PMA_Seizures'], 'BMA');
 
-%%
-Ep      = BMA.Ep;
-Cp      = diag(BMA.Cp);
+% Identify between-seizure effects (based on the Bayesian model average)
+%--------------------------------------------------------------------------
+Ep      = BMA.Ep;               % Posterior parameter estimates
+Cp      = diag(BMA.Cp);         % Posterior covariance
 
 ci      = spm_invNcdf(1 - 0.01);
-c       = ci*sqrt(Cp);
+c       = ci*sqrt(Cp);          % Bayesian confidence interval
 
-Es      = abs(Ep) - c;          % High confidence parameters
-Si      = find(Es > 0);
+Es      = abs(Ep) - c;          
+Si      = find(Es > 0);         % High confidence parameters
 
 noP     = length(BMA.Pnames);
 noC     = length(BMA.Xnames);
 
+% Identify the parameters estimated with certainty
+%--------------------------------------------------------------------------
 clear si ni
 for c = 1:noC
     hi      = Si(Si >= (c-1)*noP);
     lo      = Si(Si <= c*noP);
     si{c}   = intersect(hi,lo);
-    ni{c}   = PEB.Pnames(si{c} - (c-1)*noP);
+    ni{c}   = BMA.Pnames(si{c} - (c-1)*noP);
 end
 
-%% Plot baseline network
+%% Plotting routines
 %==========================================================================
+% Plot baseline network
+%--------------------------------------------------------------------------
 A       = zeros(7);
 ci      = spm_invNcdf(1 - 0.01);
 c       = ci*sqrt(Cp);
@@ -171,6 +188,8 @@ for cond = 1:3
     caxis([-1 1]);
     axis square
     
+    set(gcf, 'color', 'w');`
+    
 end
 
 %% Plot intrinsic connectivity changes leading to seizure
@@ -226,6 +245,7 @@ NCdata      = node;
 plot(G, 'LineWidth', LWidths, 'Layout', 'circle', 'EdgeCData', ECdata, 'NodeCData', NCdata);
 caxis([-1 1]);
 axis square
+
 
 
 
