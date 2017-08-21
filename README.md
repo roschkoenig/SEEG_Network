@@ -51,6 +51,18 @@ To track the full temporal resolution of these changes, we can vectorise the adj
 ```
 seeg_decomp
 ```
+This routine will load all available data, concatenate their windowes coherence estimates into a single *edge* by *time* matrix, and then decompose that matrix into subgraphs using nonnegative matrix decomposition. This decomposition requires a few different parameters - most importantly the number of subnetworks component into which the data is meant to be decomposed. 
+
+This can be chosen to achieve an arbitrary accuracy threshold, and the code will identify the minimum number of subnetworks required to reproduce the data with a +90% accuracy, providing the following visual output. 
+
+<img src="https://user-images.githubusercontent.com/12950773/29379867-b42ea096-82bb-11e7-8894-461ff11ae127.png" width="300">
+
+For this particular use case the minimum number of subnetworks is *k=3* and the subsequent analysis will be performed using three subnetworks. These are visualised in the next step - both as adjacency matrices (as they are fully weighted), and as a medium-connection-strength thresholded graph representation for visualisation purposes. 
+
+<img src="https://user-images.githubusercontent.com/12950773/29379866-b425d1be-82bb-11e7-9ff3-b3d447aa8ca4.png">
+
+We then use the time courses of the different network expressions to identify time points that are associated with the maximum rate of change. For this we can calcualte the sum of the differentials of each time course and place and arbitrary threshold, which we select to identify the time windows containing the biggest change. A time window prior- and after this maximum change will be analysed further using the DCM appraoch. 
+
 ### Identifying a subnetwork of representative channels
 ```
 seeg_components
@@ -94,20 +106,18 @@ The first two points are addressed in this routine. Running`spm_induced_optimise
 ```
 seeg_dcm
 ```
-This routine will load all available data, concatenate their windowes coherence estimates into a single *edge* by *time* matrix, and then decompose that matrix into subgraphs using nonnegative matrix decomposition. This decomposition requires a few different parameters - most importantly the number of subnetworks component into which the data is meant to be decomposed. 
+Based on the empirical estimates of region-specific coupling parameters derived from the grand mean DCMs, we then invert a single multi-channel (7 node) DCM for each of the time windows of interest - that is 1 pre-seizure, and 1 established-seizure window for each of the three seizures in question. 
 
-This can be chosen to achieve an arbitrary accuracy threshold, and the code will identify the minimum number of subnetworks required to reproduce the data with a +90% accuracy, providing the following visual output. 
-
-<img src="https://user-images.githubusercontent.com/12950773/29379867-b42ea096-82bb-11e7-8894-461ff11ae127.png" width="300">
-
-For this particular use case the minimum number of subnetworks is *k=3* and the subsequent analysis will be performed using three subnetworks. These are visualised in the next step - both as adjacency matrices (as they are fully weighted), and as a medium-connection-strength thresholded graph representation for visualisation purposes. 
-
-<img src="https://user-images.githubusercontent.com/12950773/29379866-b425d1be-82bb-11e7-9ff3-b3d447aa8ca4.png">
+The inverted DCMs will encode the differences in the regional activity, and coupling between regions (i.e. their cross-spectral densities) between these time windows in terms of biophysical parameters of a neural mass model. This is a reasonably time consuming step. 
 
 ### Run hierarchical parametric empirical model to identify seizure-related model changes
 ```
 seeg_peb
 ```
+After inverting DCMs individually for the pre-seizure and within-seizure time windows, we use parametric empirical Bayesian modelling to identify across-DCMs effects that are consistently induced by seizures. These are then plotted as networks of varying between-source connectivity (i.e. edge modulation) and varying degrees of intrinsic self-inhibition (i.e. node modulation) as in the example shown below. 
+
+<img src="https://user-images.githubusercontent.com/12950773/29528809-f31d8aec-8662-11e7-8a1a-fce714e7bf96.png">
+
 ### Simulate surgical interventions and quantify network effects
 ```
 seeg_surgery
@@ -115,3 +125,5 @@ seeg_surgery
 In order to simulate the effects of surgical removal of individual areas, we simulated surgery based on the models that were parameterised using the DCM approach. To simulate resection of individual areas, we removed all connection from this area and then simulated the steady state model output, leaving all other parameters unchanged. 
 
 The output of this function is a (maximum-normalised) plot of the difference induced by the *in silico* surgical intervention on the first principal eigenmode power spectrum and coherence to capture both amplitude and phase effects. 
+
+<img src="https://user-images.githubusercontent.com/12950773/29527999-0d669bee-8660-11e7-8bfa-12310d0aaf8b.png">
