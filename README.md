@@ -102,7 +102,7 @@ In order to find suitable sections of parameter space, we therefore employ a sta
 
 The first two points are addressed in this routine. Running`spm_induced_optimise` allows visualisation of individual parameters' effects on te spectral output of individual model nodes. Based on this, a single parameter (the time constant *T(2)*) was altered. With the thus adapted priors, this routine runs an inversion for each channel individually. The empirical estimates for the individual channels is then saved for use as priors in the next steps of the analysis. 
 
-### Run DCM on regions of interest identified from [Nonnegative Matrix Decomposition](#identifying-a-subnetwork-of-representative-channels)
+### Run DCM on regions of interest identified from [Nonnegative Matrix Decomposition](#run-nonnegative-matrix-decomposition-to-identify-subgraphs)
 ```
 seeg_dcm
 ```
